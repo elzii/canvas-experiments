@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width">
+  <title>{canvas}</title>
+  <script src="https://code.jquery.com/jquery-3.0.0.js"></script>
+
+
+  <style>
+    html {
+      box-sizing: border-box;
+    }
+    *, *:before, *:after {
+      box-sizing: inherit;
+    }
+
+    body { 
+      margin:0;
+      padding:0;
+    }
+
+    #canvas-container {
+      position: relative;
+      display:block;
+      margin:0 auto;
+      margin-top: 100px;
+      /*width:90%;*/
+      height:700px;
+      /*max-height:00px;*/
+
+      background-color: #999;
+      overflow:hidden;
+    } 
+
+    .canvas {
+      position: absolute;
+      top:0;left:0;
+      width:100%;height:100%;
+    }
+
+    .canvas-bg {
+      position: absolute;
+      top:0;left:0;
+      width:100%;height:100%;
+      background-size: cover;
+      background-position: 50% 50%;
+      background-repeat: no-repeat;
+    }
+    .hide { display:none; }
+  </style>
+</head>
+<body>
+
+
+  <div class="spacer" style="height:1000px;width:100%"></div>
+
+  <div id="canvas-container" >
+    <div id="canvas-bg" class="canvas-bg" style="background-image:url(http://i.imgur.com/OV40MFY.jpg)"></div>
+    <!-- <img id="canvas-bg" class="canvas-bg" src="http://i.imgur.com/OV40MFY.jpg" alt=""> -->
+    <canvas id="canvas" class="canvas" width="100" height="500">
+        
+    </canvas>
+  </div> 
+
+
+  <div id="animations">
+    <div class="element1" style="width:100px;height:100px;background-color:red;"></div>
+  </div>
+
+
+  <script src="js/lib/tram.js"></script>
+  <script src="js/underscore-custom.js"></script>
+  <script src="js/lib/viewport.min.js"></script>
+  <script src="js/webflow.js"></script>
+  <!-- <script src="js/animations.js"></script> -->
+  <script src="main.js"></script>
+
+
+
+  <script>
+    
+    
+
+  </script>
+  
+</body>
+</html>
