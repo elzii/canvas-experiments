@@ -156,43 +156,27 @@ CanvasRenderingContext2D.prototype.clear =
 
   function updateParallaxCard( options ) {
 
-    var options = options || {};
-
-    var $el = options.$el ? options.$el : {};
+    var options       = options || {};
+    var $el           = options.$el ? options.$el : {};
+    var offsetPercent = options.offsetPercent ? options.offsetPercent : 0;
 
     if ( $el.is(':in-viewport')) {
       requestAnimationFrame(function() {
-        var scrollTop  = window.pageYOffset || $win.scrollTop();
-        var viewHeight = $(window).height()
-        var pageY      = viewHeight + scrollTop;
-        var elOffset   = $el.offset().top;
-        var elHeight   = $el.height()
-        var elScrollYPercent = (pageY-elOffset) / elHeight
 
-        if ( elScrollYPercent <= 1 ) {
-          // console.log( elHeight, elOffset, pageY )
-          console.log( 'elScrollYPercent', elScrollYPercent )
+        var data = getElementScrollData({ $el: $el, offsetPercent: offsetPercent })
 
-          ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+        ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
 
-          var topBoxHeight = Math.round((1-elScrollYPercent)*60*3) < 60 ? 60 : Math.round((1-elScrollYPercent)*60*3)
-          var botBoxHeight = Math.round((elScrollYPercent)*60*2) > 60 ? 60 : Math.round((1-elScrollYPercent)*60*2)
+        var topBoxH = Math.round(Math.max( (1-(data.scrollRatio*1.1))*60*3, 60 ));
+        var botBoxH = Math.round(Math.max( ((data.scrollRatio*1.1))*60*3, 60 ));
 
+        drawOverlay()
+        drawTopBoundingBox({ distance: topBoxH })
+        drawBottomBoundingBox({ distance: botBoxH })
 
-          drawOverlay()
+        if ( data.elScrollYPercent > 0.50 ) {}
 
-          drawTopBoundingBox({
-            distance: topBoxHeight
-          })
-          drawBottomBoundingBox({
-            distance: botBoxHeight
-          })
-
-          if ( elScrollYPercent > 0.50 ) {
-          }
-
-          // $('#canvas-bg').css('background-position', 50 +'% '+ (elScrollYPercent/5)*100 +'%')
-        }
+        // $('#canvas-bg').css('background-position', 50 +'% '+ (elScrollYPercent/3)*100 +'%')
 
       });
     }
@@ -201,6 +185,62 @@ CanvasRenderingContext2D.prototype.clear =
 
 
 
+
+  function getElementScrollData( options ) {
+
+    var options       = options || {};
+    var $el           = options.$el ? options.$el : {};
+    var debug         = options.debug ? options.debug : false;
+    var offsetPercent = options.offsetPercent ? options.offsetPercent : 0;
+
+
+    if ( $el ) {
+      var scrollTop              = window.pageYOffset || $win.scrollTop();
+      var viewHeight             = $(window).height()
+      var pageY                  = viewHeight + scrollTop;
+      var offset                 = offsetPercent ? Math.round($el.height() * offsetPercent) : 0;
+      var elTop                  = $el.offset().top;
+      var elHeight               = $el.height()
+      var elScrollYPercent       = (pageY-elTop) / elHeight
+      var pastOffset             = (pageY-elTop > offset) ? true : false;
+      var elOffsetScrollY        = ((pageY-elTop) - offset) > 0 ? ((pageY-elTop) - offset) : 0;
+      var elOffsetScrollYPercent = elOffsetScrollY / elHeight;
+      var scrollRatio            = Math.max(Math.min( scrollTop / (((elTop + (elHeight / 2)) - (viewHeight / 2)) * 2), 1), 0);
+
+      
+      if ( debug ) {
+        console.table({
+          scrollTop: [scrollTop], 
+          viewHeight: [viewHeight], 
+          pageY: [pageY], 
+          elTop: [elTop], 
+          elHeight: [elHeight], 
+          offsetPercent: [offsetPercent], 
+          offset: [offset], 
+          elOffsetScrollY: [elOffsetScrollY],
+          scrollRatio: [scrollRatio], 
+          elScrollYPercent: [elScrollYPercent],
+          elOffsetScrollYPercent: [elOffsetScrollYPercent],
+          pastOffset: [pastOffset],
+        })
+      }
+      
+      return {
+        scrollTop: scrollTop,
+        viewHeight: viewHeight,
+        pageY: pageY,
+        elTop: elTop,
+        elHeight: elHeight,
+        elScrollYPercent: elScrollYPercent,
+        pastOffset: pastOffset,
+        elOffsetScrollY: elOffsetScrollY,
+        elOffsetScrollYPercent: elOffsetScrollYPercent,
+        scrollRatio: scrollRatio,
+      }
+
+    }
+
+  }
 
 
 
@@ -336,7 +376,8 @@ CanvasRenderingContext2D.prototype.clear =
   function onScroll() {
 
     updateParallaxCard({
-      $el: $canvas_container
+      $el: $canvas_container,
+      offsetPercent: 0.5
     })
 
     requestAnimationFrame(function() {
