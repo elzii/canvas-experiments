@@ -14,6 +14,8 @@ var APP = (function ($) {
    */
   app.init = function() {
 
+    this.progressiveMedia.init()
+
     this.parallaxCardDefault.init()
 
   }
@@ -29,6 +31,9 @@ var APP = (function ($) {
    * @type {Object}
    */
   app.parallaxCardDefault = {
+
+    debug: true,
+
 
     $el: {
       container: document.getElementById('canvas-container'),
@@ -47,6 +52,10 @@ var APP = (function ($) {
       $(_this.$el.canvas).attr('width', $(_this.$el.container).width() )
       $(_this.$el.canvas).attr('height', $(_this.$el.container).height() )
 
+      _this.update({
+        $el: $( _this.$el.container ),
+      })
+
       _this.events()
     },
 
@@ -56,14 +65,11 @@ var APP = (function ($) {
 
       $(document).on('scroll', function() {
 
-        _this.update({
-          $el: $( _this.$el.container ),
-          offsetPercent: 0.5
-        })
+        _this.update()
 
       })
 
-      $(window).resize( _this.draw );
+      $(window).resize( _this.update() );
 
 
       addViewportScrollHandler({
@@ -85,13 +91,14 @@ var APP = (function ($) {
 
 
     // Draw
-    draw: function() {
-      var _this = this;
+    // draw: function() {
+    //   var _this = this;
 
-      _this.drawOverlay()
-      _this.drawBottomBoundingBox()
-      _this.drawTopBoundingBox()
-    },
+    //   _this.drawOverlay()
+    //   _this.drawBottomBoundingBox()
+    //   _this.drawTopBoundingBox()
+    // },
+
 
     // Draw Overlay
     drawOverlay: function( options ) {
@@ -200,13 +207,13 @@ var APP = (function ($) {
       var _this = this;
 
       var options       = options || {};
-      var $el           = options.$el ? options.$el : {};
+      var $el           = options.$el ? options.$el : $( _this.$el.container );
       var offsetPercent = options.offsetPercent ? options.offsetPercent : 0;
 
       if ( $el.is(':in-viewport')) {
         requestAnimationFrame(function() {
 
-          var data = getElementScrollData({ $el: $el, offsetPercent: offsetPercent })
+          var data = getElementScrollData({ $el: $el, offsetPercent: offsetPercent, debug: _this.debug })
 
           _this.clear()
 
@@ -238,6 +245,112 @@ var APP = (function ($) {
 
 
 
+
+
+
+
+
+  /**
+   * Progressive Media
+   */
+  app.progressiveMedia = {
+
+    init: function() {
+
+      var _this = app.progressiveMedia;
+
+      _this.readThumbs()
+      _this.readMedia()
+      
+    },
+
+    readMedia: function() {
+
+      var _this = app.progressiveMedia;
+      
+      var $items = $('[data-progressivemedia]')
+
+      $.each( $items, function(i, item) {
+        
+        var type = $(item).data('progressivemedia-type'),
+            src  = $(item).data('progressivemedia-src');
+
+        if ( type ) {
+          if ( type === 'background' ) {
+            _this.renderImageAsBackground({
+              element: $(item),
+              src: src,
+            })
+          }
+        }
+      })
+
+    },
+
+
+    readThumbs: function() {
+
+      var _this = app.progressiveMedia;
+      
+      var $items = $('[data-progressivemedia-thumb]')
+
+      $.each( $items, function(i, item) {
+        var src     = $(item).attr('src')
+        var id      = 'progressiveMedia-preview-canvas-'+makeId();
+        var canvas  = $('<canvas/>', { id: id, class: 'progressiveMedia-preview-canvas' })
+        var context = canvas.get(0).getContext('2d')
+
+        $(item).before(canvas)
+
+        _this.drawImagePreviewToCanvas({
+          id: id,
+          src: src,
+          context: context
+        })
+
+      })
+
+    },
+
+    renderImageAsBackground: function(options) {
+
+      var src     = options.src ? options.src : '';
+      var $element = options.element ? options.element : {};
+
+      var img = new Image();
+      img.src = src;
+      img.onload = function () {
+        console.log('Loaded full image')
+
+        setTimeout(function() {
+          $element.find('canvas').fadeOut()
+        }, 300)
+        $element.css('background-image', 'url('+src+')')
+      }
+
+    },
+
+
+    drawImagePreviewToCanvas: function(options, callback) {
+
+      var id      = options.id ? options.id : '';
+      var src     = options.src ? options.src : '';
+      var context = options.context ? options.context : {};
+
+      var w = context.canvas.width;
+      var h = context.canvas.height;
+
+      var img = new Image();
+      img.src = src;
+      img.onload = function () {
+        context.drawImage(img, 0, 0, w, h);
+        stackBlurCanvasRGBA(id, 0, 0, w, h, 100);
+      }
+    },
+
+
+
+  }
 
 
 
@@ -435,6 +548,19 @@ var APP = (function ($) {
   }
 
 
+
+  function makeId(length) {
+
+    var length = length ? length : 5;
+
+    var text = "";
+    var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+
+    for( var i=0; i < length; i++ )
+        text += possible.charAt(Math.floor(Math.random() * possible.length));
+
+    return text;
+  }
   
 
 

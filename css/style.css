@@ -1,0 +1,133 @@
+html {
+  box-sizing: border-box;
+}
+*, *:before, *:after {
+  box-sizing: inherit;
+}
+
+body { 
+  margin:0;
+  padding:0;
+
+  font-family: "Helvetica Neue", Helvetica, sans-serif;
+}
+
+
+h2 {
+  font-weight: 300;
+}
+
+small { text-transform: uppercase; }
+
+.hide { display:none; }
+
+
+
+
+
+/**
+ * Cover
+ */
+#cover {}
+.cover {
+  position: relative;
+  width:100%;
+  height: 100vh;
+  max-height: 1200px;
+
+  // background-color: rgba(255,0,0, 0.5);
+}
+
+  .cover__inner {
+    position: absolute;
+    top:0;left:0;
+    width:100%;height:100%;
+    z-index:5;
+  }
+
+  .cover__bg {
+    position: absolute;
+    top:0;left:0;
+    width:100%;height:100%;
+    z-index:2;
+
+    background-size: cover;
+    background-position: 50% 50%;
+    background-repeat: no-repeat;
+  }
+
+
+
+
+
+/**
+ * Canvas Parallax Card
+ */
+#canvas-container {
+  position: relative;
+  display:block;
+  margin:0 auto;
+  margin-top: 100px;
+  /*width:90%;*/
+  /*height:800px;*/
+  height:800px;
+
+  overflow:hidden;
+} 
+
+.canvas {
+  position: absolute;
+  top:0;left:0;
+  width:100%;height:100%;
+}
+
+.canvas-bg {
+  position: absolute;
+  top:0;left:0;
+  width:100%;height:100%;
+  background-size: cover;
+  background-position: 50% 50%;
+  background-repeat: no-repeat;
+}
+
+.canvas-overlay {
+  position: absolute;
+  z-index:10;
+  top:0;left:0;
+  width:100%;height:100%;
+  color:white;
+
+  /* fix for image overflow */
+  /*border-right: 1px solid white;*/
+  /*border-left: 1px solid white;*/
+}
+
+  .canvas-content {
+    position: absolute;
+    width:30%;
+    bottom:25%;
+    padding:0 60px;
+  }
+
+
+
+
+.progressiveMedia {
+
+}
+
+.progressiveMedia-thumb {
+  display:none;
+}
+  .progressiveMedia-thumb--full {
+    width:100%;
+    height:100%;
+  }
+
+
+.progressiveMedia-preview-canvas {
+  position: absolute;
+  top:0;left:0;
+  width:100%;
+  height:100%;
+}
