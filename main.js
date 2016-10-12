@@ -1,188 +1,365 @@
-CanvasRenderingContext2D.prototype.clear = 
-  CanvasRenderingContext2D.prototype.clear || function (preserveTransform) {
-    if (preserveTransform) {
-      this.save();
-      this.setTransform(1, 0, 0, 1, 0, 0);
-    }
-
-    this.clearRect(0, 0, this.canvas.width, this.canvas.height);
-
-    if (preserveTransform) {
-      this.restore();
-    }         
-};
+var APP = (function ($) {
 
 
-
-(function($) {
-
-  var canvas    = $('#canvas');
-  var ctx       = canvas.get(0).getContext('2d');
-  var container = $(canvas).parent();
-  
-
-  //Run function when browser resizes
-  $(window).resize( draw );
-
-
-  function draw() { 
-    canvas.attr('width', $(container).width() );
-    canvas.attr('height', $(container).height() );
-
-    var WIDTH  = canvas.width();
-    var HEIGHT = canvas.height();
-
-    var WIDTH_HALF  = canvas.width() / 2,
-        HEIGHT_HALF = canvas.height() / 2
-    
-    console.log('WIDTH, HEIGHT', WIDTH, HEIGHT)
-
-    drawOverlay()
-    drawBottomBoundingBox()
-    drawTopBoundingBox()
-
-  }
-
-
-
-  function drawOverlay( options ) {
-
-    // var coord = findCoordFromAngle({
-    //   startX: __X(0.45),
-    //   startY: __Y(0.50),
-    //   angle: 105,
-    //   distance: 100
-    // })
-
-    ctx.save();
-    ctx.beginPath();      
-    ctx.moveTo( 0, 0 )
-    ctx.lineTo(__X(0.60), 0 )
-    ctx.lineTo( __X(0.45), __Y(1.0) )
-    ctx.lineTo(0, __Y(1.0) )
-    ctx.lineTo(0, 0)
-    ctx.closePath();
-    
-    ctx.fillStyle = "rgba(59,58,54,0.70)";
-    ctx.fill();
-    ctx.restore();
-
-  }
-
-
-  function drawBottomBoundingBox( options ) {
-
-    var options  = options || {};
-    var distance = options.distance ? options.distance : 60;
-
-    var angleBottom = getAngle( { x: __X(0.45), y: __Y(1.0) }, { x: __X(0.60), y: 0 } )
-
-    var coord = findCoordFromAngle({
-      startX: __X(0.45),
-      startY: __Y(1.0),
-      angle: angleBottom,
-      distance: distance
-    })
-
-    // console.log('angleBottom, coord', angleBottom, coord)
-
-
-    ctx.save()
-    ctx.beginPath()
-    ctx.moveTo( __X(1.0), __Y(1.0) )
-    ctx.lineTo( __X(0.45), __Y(1.0) )
-    ctx.lineTo( coord.x, coord.y )
-    ctx.lineTo( __X(1.0), coord.y )
-
-    // ctx.strokeStyle="#FF0000";
-    // ctx.stroke()
-
-    ctx.closePath()
-    ctx.fillStyle = "white"
-    // ctx.fillStyle = "rgba(255,0,0, 0.5)"
-    ctx.fill();
-    ctx.restore()     
-
-  }
-
-
-
-  function drawTopBoundingBox( options ) {
-
-    var options  = options || {};
-    var distance = options.distance ? options.distance : 60;
-
-    var angleTop = getAngle( { x: __X(0.60), y: 0 }, { x: __X(0.45), y: __Y(1.0) } )
-
-    var coord = findCoordFromAngle({
-      startX: __X(0.60),
-      startY: __Y(0),
-      angle: angleTop,
-      distance: distance
-    })
-
-    // console.log('angleTop, coord', angleTop, coord)
-
-    ctx.save()
-    ctx.beginPath()
-    ctx.moveTo( __X(0.60), __Y(0) )
-    ctx.lineTo( coord.x, coord.y )
-    ctx.lineTo( __X(1.0), coord.y )
-    ctx.lineTo( __X(1.0), 0 )
-
-    // ctx.strokeStyle="red";
-    // ctx.stroke();
-
-    ctx.closePath()
-    ctx.fillStyle = "white"
-    ctx.fill();
-    ctx.restore()     
-
-  }
-
-
-
-
-  //Initial call 
-  // draw();
-
-
-
+  /**
+   * Modules
+   */
+  var app  = window.APP || {};
 
 
   
 
+  /**
+   * Init
+   */
+  app.init = function() {
 
+    this.progressiveMedia.init()
 
-  function updateParallaxCard( options ) {
+    this.parallaxCardDefault.init()
 
-    var options       = options || {};
-    var $el           = options.$el ? options.$el : {};
-    var offsetPercent = options.offsetPercent ? options.offsetPercent : 0;
-
-    if ( $el.is(':in-viewport')) {
-      requestAnimationFrame(function() {
-
-        var data = getElementScrollData({ $el: $el, offsetPercent: offsetPercent })
-
-        ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-
-        var topBoxH = Math.round(Math.max( (1-(data.scrollRatio*1.1))*60*3, 60 ));
-        var botBoxH = Math.round(Math.max( ((data.scrollRatio*1.1))*60*3, 60 ));
-
-        drawOverlay()
-        drawTopBoundingBox({ distance: topBoxH })
-        drawBottomBoundingBox({ distance: botBoxH })
-
-        if ( data.elScrollYPercent > 0.50 ) {}
-
-        // $('#canvas-bg').css('background-position', 50 +'% '+ (elScrollYPercent/3)*100 +'%')
-
-      });
-    }
   }
 
 
+
+
+
+
+
+  /**
+   * Parallax Card - Default
+   * @type {Object}
+   */
+  app.parallaxCardDefault = {
+
+    debug: true,
+
+
+    $el: {
+      container: document.getElementById('canvas-container'),
+      canvas: document.getElementById('canvas'),
+      context: this.canvas.getContext('2d')
+    },
+
+
+    // Init
+    init: function() {
+      var _this = this;
+
+      // console.log( '_this.$el', _this.$el )
+
+      // set canvas size to container size
+      $(_this.$el.canvas).attr('width', $(_this.$el.container).width() )
+      $(_this.$el.canvas).attr('height', $(_this.$el.container).height() )
+
+      _this.update({
+        $el: $( _this.$el.container ),
+      })
+
+      _this.events()
+    },
+
+    // Events
+    events: function() {
+      var _this = this;
+
+      $(document).on('scroll', function() {
+
+        _this.update()
+
+      })
+
+      $(window).resize( _this.update() );
+
+
+      addViewportScrollHandler({
+        $el: $( _this.$el.container ),
+        context: _this.$el.context,
+        state: {active: false},
+        offsetTop: 0.0,
+        offsetBot: 0.0,
+        intro: function(opts) {
+          // console.log('intro', opts)
+        },
+        outro: function() {
+          // console.log('outro', opts)
+        }
+
+      })
+
+    },
+
+
+    // Draw
+    // draw: function() {
+    //   var _this = this;
+
+    //   _this.drawOverlay()
+    //   _this.drawBottomBoundingBox()
+    //   _this.drawTopBoundingBox()
+    // },
+
+
+    // Draw Overlay
+    drawOverlay: function( options ) {
+
+      var _this = this,
+          c     = _this.$el.canvas,
+          ctx   = _this.$el.context;
+
+      ctx.save();
+      ctx.beginPath();      
+      ctx.moveTo( 0, 0 )
+      ctx.lineTo( __X(c, 0.60), 0 )
+      ctx.lineTo( __X(c, 0.45), __Y(c, 1.0) )
+      ctx.lineTo(0, __Y(c, 1.0) )
+      ctx.lineTo(0, 0)
+      ctx.closePath();
+      
+      ctx.fillStyle = "rgba(59,58,54,0.70)";
+      ctx.fill();
+      ctx.restore();
+
+    },
+
+    // Draw Bottom Bounding Box
+    drawBottomBoundingBox: function( options ) {
+
+      var _this = this,
+          c     = _this.$el.canvas,
+          ctx   = _this.$el.context;
+
+      var options  = options || {};
+      var distance = options.distance ? options.distance : 60;
+
+      var angleBottom = getAngle( { x: __X(c, 0.45), y: __Y(c, 1.0) }, { x: __X(c, 0.60), y: 0 } )
+
+      var coord = findCoordFromAngle({
+        startX: __X(c, 0.45),
+        startY: __Y(c, 1.0),
+        angle: angleBottom,
+        distance: distance
+      })
+
+
+      ctx.save()
+      ctx.beginPath()
+      ctx.moveTo( __X(c, 1.0), __Y(c, 1.0) )
+      ctx.lineTo( __X(c, 0.45), __Y(c, 1.0) )
+      ctx.lineTo( coord.x, coord.y )
+      ctx.lineTo( __X(c, 1.0), coord.y )
+
+      // ctx.strokeStyle="#FF0000";
+      // ctx.stroke()
+
+      ctx.closePath()
+
+      ctx.translate(canvas.width / 2, canvas.height / 2);
+
+      ctx.fillStyle = "white"
+      // ctx.fillStyle = "rgba(255,0,0, 0.5)"
+      ctx.fill();
+      ctx.restore()     
+
+    },
+
+    // Draw Top Bounding Box
+    drawTopBoundingBox: function ( options ) {
+
+      var _this = this,
+          c     = _this.$el.canvas,
+          ctx   = _this.$el.context;
+
+      var options  = options || {};
+      var distance = options.distance ? options.distance : 60;
+
+      var angleTop = getAngle( { x: __X(c, 0.60), y: 0 }, { x: __X(c, 0.45), y: __Y(c, 1.0) } )
+
+      var coord = findCoordFromAngle({
+        startX: __X(c, 0.60),
+        startY: __Y(c, 0),
+        angle: angleTop,
+        distance: distance
+      })
+
+      // console.log('angleTop, coord', angleTop, coord)
+
+      ctx.save()
+      ctx.beginPath()
+      ctx.moveTo( __X(c, 0.60), __Y(c, 0) )
+      ctx.lineTo( coord.x, coord.y )
+      ctx.lineTo( __X(c, 1.0), coord.y )
+      ctx.lineTo( __X(c, 1.0), 0 )
+
+      // ctx.strokeStyle="red";
+      // ctx.stroke();
+
+      ctx.closePath()
+      ctx.fillStyle = "white"
+      ctx.fill();
+      ctx.restore()     
+
+    },
+
+
+    update: function( options ) {
+
+      var _this = this;
+
+      var options       = options || {};
+      var $el           = options.$el ? options.$el : $( _this.$el.container );
+      var offsetPercent = options.offsetPercent ? options.offsetPercent : 0;
+
+      if ( $el.is(':in-viewport')) {
+        requestAnimationFrame(function() {
+
+          var data = getElementScrollData({ $el: $el, offsetPercent: offsetPercent, debug: _this.debug })
+
+          _this.clear()
+
+          var topBoxH = Math.round(Math.max( (1-(data.scrollRatio*1.1))*60*3, 60 ));
+          var botBoxH = Math.round(Math.max( ((data.scrollRatio*1.1))*60*3, 60 ));
+
+          _this.drawOverlay()
+          _this.drawTopBoundingBox({ distance: topBoxH })
+          _this.drawBottomBoundingBox({ distance: botBoxH })
+
+          if ( data.elScrollYPercent > 0.50 ) {}
+
+          // $('#canvas-bg').css('background-position', 50 +'% '+ (elScrollYPercent/3)*100 +'%')
+
+        });
+      }
+    },
+
+
+    clear: function() {
+      var _this = this;
+      _this.$el.context.clearRect(0, 0, _this.$el.context.canvas.width, _this.$el.context.canvas.height);
+    }
+
+
+
+
+  }
+
+
+
+
+
+
+
+
+  /**
+   * Progressive Media
+   */
+  app.progressiveMedia = {
+
+    init: function() {
+
+      var _this = app.progressiveMedia;
+
+      _this.readThumbs()
+      _this.readMedia()
+      
+    },
+
+    readMedia: function() {
+
+      var _this = app.progressiveMedia;
+      
+      var $items = $('[data-progressivemedia]')
+
+      $.each( $items, function(i, item) {
+        
+        var type = $(item).data('progressivemedia-type'),
+            src  = $(item).data('progressivemedia-src');
+
+        if ( type ) {
+          if ( type === 'background' ) {
+            _this.renderImageAsBackground({
+              element: $(item),
+              src: src,
+            })
+          }
+        }
+      })
+
+    },
+
+
+    readThumbs: function() {
+
+      var _this = app.progressiveMedia;
+      
+      var $items = $('[data-progressivemedia-thumb]')
+
+      $.each( $items, function(i, item) {
+        var src     = $(item).attr('src')
+        var id      = 'progressiveMedia-preview-canvas-'+makeId();
+        var canvas  = $('<canvas/>', { id: id, class: 'progressiveMedia-preview-canvas' })
+        var context = canvas.get(0).getContext('2d')
+
+        $(item).before(canvas)
+
+        _this.drawImagePreviewToCanvas({
+          id: id,
+          src: src,
+          context: context
+        })
+
+      })
+
+    },
+
+    renderImageAsBackground: function(options) {
+
+      var src     = options.src ? options.src : '';
+      var $element = options.element ? options.element : {};
+
+      var img = new Image();
+      img.src = src;
+      img.onload = function () {
+        console.log('Loaded full image')
+
+        setTimeout(function() {
+          $element.find('canvas').fadeOut()
+        }, 300)
+        $element.css('background-image', 'url('+src+')')
+      }
+
+    },
+
+
+    drawImagePreviewToCanvas: function(options, callback) {
+
+      var id      = options.id ? options.id : '';
+      var src     = options.src ? options.src : '';
+      var context = options.context ? options.context : {};
+
+      var w = context.canvas.width;
+      var h = context.canvas.height;
+
+      var img = new Image();
+      img.src = src;
+      img.onload = function () {
+        context.drawImage(img, 0, 0, w, h);
+        stackBlurCanvasRGBA(id, 0, 0, w, h, 100);
+      }
+    },
+
+
+
+  }
+
+
+
+
+
+
+
+
+  
 
 
 
@@ -283,9 +460,9 @@ CanvasRenderingContext2D.prototype.clear =
    * @param  {Number} percentage 
    * @return {Number}            
    */
-  function __X(percentage) {
+  function __X(canvas, percentage) {
     var percentage = percentage ? percentage : 0.0;
-    return canvas.width() * percentage
+    return $( canvas ).width() * percentage
   }
 
   /**
@@ -294,9 +471,9 @@ CanvasRenderingContext2D.prototype.clear =
    * @param  {Number} percentage 
    * @return {Number}            
    */
-  function __Y(percentage) {
+  function __Y(canvas, percentage) {
     var percentage = percentage ? percentage : 0.0;
-    return canvas.height() * percentage
+    return $( canvas ).height() * percentage
   }
 
   /**
@@ -306,7 +483,8 @@ CanvasRenderingContext2D.prototype.clear =
    * @param  {Function} callback
    */
   window.requestAnimFrame = (function(callback) {
-    return window.requestAnimationFrame || window.webkitRequestAnimationFrame || window.mozRequestAnimationFrame || window.oRequestAnimationFrame || window.msRequestAnimationFrame ||
+    return window.requestAnimationFrame || window.webkitRequestAnimationFrame || 
+      window.mozRequestAnimationFrame || window.oRequestAnimationFrame || window.msRequestAnimationFrame ||
       function(callback) {
       window.setTimeout(callback, 1000 / 60);
     };
@@ -370,45 +548,66 @@ CanvasRenderingContext2D.prototype.clear =
   }
 
 
+
+  function makeId(length) {
+
+    var length = length ? length : 5;
+
+    var text = "";
+    var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+
+    for( var i=0; i < length; i++ )
+        text += possible.charAt(Math.floor(Math.random() * possible.length));
+
+    return text;
+  }
   
 
 
   function onScroll() {
 
-    updateParallaxCard({
-      $el: $canvas_container,
-      offsetPercent: 0.5
-    })
+    
+  }
+  function onTouchMove() {
 
-    requestAnimationFrame(function() {
-      var scrollTop = window.pageYOffset || $win.scrollTop();
-    });
-  
+    
   }
 
 
   $(document)
-    .on('scroll', onScroll);
-    // .on('touchmove', onTouchMove)
+    .on('scroll', onScroll)
+    .on('touchmove', onTouchMove)
 
 
-  var $canvas_container = $('#canvas-container');
-  addViewportScrollHandler({
-    $el: $canvas_container,
-    context: ctx,
-    state: {active: false},
-    offsetTop: 0.0,
-    offsetBot: 0.0,
-    intro: function(opts) {
-      console.log('intro', opts)
-    },
-    outro: function() {
-      console.log('outro')
-    }
 
+
+  /**
+   *
+   * 
+   * ----------------------------------------------------------------
+   * Event Listeners
+   * ----------------------------------------------------------------
+   *
+   * 
+   */
+
+
+
+  document.addEventListener('DOMContentLoaded', function (event) {
+    console.log('document.DOMContentLoaded')
   })
 
-  draw()
+
+  window.addEventListener('load', function (event) {
+    console.log('window.load')
+  })
+
+
+
+
+  app.init()
+  
+  return app;
 
 })(jQuery); 
 
