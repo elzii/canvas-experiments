@@ -5,8 +5,18 @@ var APP = (function ($) {
    * Modules
    */
   var app  = window.APP || {};
+  var ee   = new EventEmitter();
 
+  app.environment = function() {
+    return window.location.href.match(/(localhost|dev)/g) ? 'development' : 'production';
+  }
 
+  /**
+   * Settings
+   */
+  app.settings = {
+
+  }
   
 
   /**
@@ -15,24 +25,91 @@ var APP = (function ($) {
   app.init = function() {
 
     this.progressiveMedia.init()
-
     this.parallaxCardDefault.init()
+    this.coverSlider.init()
+
+  }
+
+
+  /**
+   * Cover Slider
+   * 
+   * @type {Object}
+   */
+  app.coverSlider = {
+
+    $el: {
+      container: document.getElementById('cover'),
+      swiper: document.getElementById('swiper-container'),
+    },
+
+    init: function() {
+
+      var _this = this;
+
+      _this.slider()
+      _this.reveal()
+
+    },
+
+    slider: function() {
+
+      var _this = this;
+      
+      var s = $( _this.$el.swiper ).swiper({
+        pagination: '.swiper-pagination',
+        paginationClickable: true,
+        direction: 'horizontal',
+        onInit: function(swiper, event) {
+          console.log('onInit', swiper, event)
+        },
+        onReachEnd: function(swiper, event) {
+          console.log('onReachEnd', swiper, event)
+        },
+        onSlideChangeStart: function() {},
+        onSlideChangeEnd: function(swiper, event) {
+          console.log('onSlideChangeEnd', swiper, event)
+        },
+        onSlideNextStart: function() {},
+        onSlideNextEnd: function(swiper, event) {
+          console.log('onSlideNextEnd', swiper, event)
+        },
+        onSlidePrevStart: function() {},
+        onSlidePrevEnd: function() {},
+        onTouchMove: function(swiper, event) {
+          
+        }
+      });
+
+    },
+
+    reveal: function() {
+      var _this = this;
+
+      // show when event has been emitted, otherwise show immediatly
+      if ( ee ) {
+        ee.addListener('progressiveMedia.renderImageAsBackground', function(opts) {
+          if ( opts.name === 'cover-photo' ) {
+            $( _this.$el.container ).find('.cover__sheet').addClass('show')
+          }
+        })
+      } else {
+        $( _this.$el.container ).find('.cover__sheet').addClass('show')
+      }
+    }
 
   }
 
 
 
-
-
-
-
   /**
    * Parallax Card - Default
+   * 
    * @type {Object}
    */
   app.parallaxCardDefault = {
 
-    debug: true,
+    debug: false,
 
 
     $el: {
@@ -273,12 +350,14 @@ var APP = (function ($) {
       $.each( $items, function(i, item) {
         
         var type = $(item).data('progressivemedia-type'),
-            src  = $(item).data('progressivemedia-src');
+            src  = $(item).data('progressivemedia-src'),
+            name = $(item).data('progressivemedia-name');
 
         if ( type ) {
           if ( type === 'background' ) {
             _this.renderImageAsBackground({
               element: $(item),
+              name: name,
               src: src,
             })
           }
@@ -296,6 +375,7 @@ var APP = (function ($) {
 
       $.each( $items, function(i, item) {
         var src     = $(item).attr('src')
+        var radius  = $(item).data('progressivemedia-radius') ? $(item).data('progressivemedia-radius') : 20;
         var id      = 'progressiveMedia-preview-canvas-'+makeId();
         var canvas  = $('<canvas/>', { id: id, class: 'progressiveMedia-preview-canvas' })
         var context = canvas.get(0).getContext('2d')
@@ -305,6 +385,7 @@ var APP = (function ($) {
         _this.drawImagePreviewToCanvas({
           id: id,
           src: src,
+          radius: radius,
           context: context
         })
 
@@ -312,20 +393,23 @@ var APP = (function ($) {
 
     },
 
-    renderImageAsBackground: function(options) {
+    renderImageAsBackground: function(options, callback) {
 
       var src     = options.src ? options.src : '';
+      var name    = options.name ? options.name : '';
       var $element = options.element ? options.element : {};
 
       var img = new Image();
       img.src = src;
       img.onload = function () {
-        console.log('Loaded full image')
 
+        $element.css('background-image', 'url('+src+')')
+        
         setTimeout(function() {
           $element.find('canvas').fadeOut()
+          ee.emitEvent('progressiveMedia.renderImageAsBackground', [options]);
+          if ( callback ) callback()
         }, 300)
-        $element.css('background-image', 'url('+src+')')
       }
 
     },
@@ -335,6 +419,7 @@ var APP = (function ($) {
 
       var id      = options.id ? options.id : '';
       var src     = options.src ? options.src : '';
+      var radius  = options.radius ? options.radius : '';
       var context = options.context ? options.context : {};
 
       var w = context.canvas.width;
@@ -344,7 +429,7 @@ var APP = (function ($) {
       img.src = src;
       img.onload = function () {
         context.drawImage(img, 0, 0, w, h);
-        stackBlurCanvasRGBA(id, 0, 0, w, h, 100);
+        stackBlurCanvasRGBA(id, 0, 0, w, h, radius);
       }
     },
 

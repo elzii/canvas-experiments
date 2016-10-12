@@ -6,17 +6,43 @@
   <title>{canvas}</title>
   <script src="https://code.jquery.com/jquery-3.0.0.js"></script>
 
+  <link rel="stylesheet" href="css/vendor/swiper.min.css">
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 
 
   <div id="cover" class="cover">
-    <div class="cover__bg" data-progressiveMedia data-progressiveMedia-type="background" data-progressiveMedia-src="http://i.imgur.com/j6uzgsQ.jpg?v=1.2">
-      <img src="images/cover-photo-01--thumb.jpg" data-progressiveMedia-thumb class="progressiveMedia-thumb progressiveMedia-thumb--full">
-    </div>
-    <div class="cover__inner">
-      
+
+    <div class="cover__sheet"></div>
+
+    <div id="swiper-container" class="swiper-container">
+      <div class="swiper-wrapper">
+        
+        <div class="swiper-slide">
+          
+          
+          <div class="cover__bg" data-progressiveMedia data-progressiveMedia-name="cover-photo" data-progressiveMedia-type="background" data-progressiveMedia-src="http://i.imgur.com/j6uzgsQ.jpg?v=1.2">
+            <img src="images/cover-photo-01--thumb.jpg" data-progressiveMedia-radius="15" data-progressiveMedia-thumb class="progressiveMedia-thumb progressiveMedia-thumb--full">
+          </div>
+          <div class="cover__inner">
+            
+          </div>
+
+        </div>
+        <div class="swiper-slide">
+          
+          <div class="cover__bg" data-progressiveMedia data-progressiveMedia-type="background" data-progressiveMedia-src="images/cover-photo-02@2x.jpg">
+            <img src="images/cover-photo-02--thumb.jpg" data-progressiveMedia-radius="15" data-progressiveMedia-thumb class="progressiveMedia-thumb progressiveMedia-thumb--full">
+          </div>
+          <div class="cover__inner">
+            
+          </div>
+
+        </div>
+
+      </div>
+      <div class="swiper-pagination"></div>
     </div>
   </div>
   
@@ -48,7 +74,9 @@
 
 
   <script src="js/vendor/tram.js"></script>
+  <script src="js/vendor/swiper.jquery.min.js"></script>
   <script src="js/vendor/stackblur.min.js"></script>
+  <script src="js/vendor/eventemitter.min.js"></script>
   <script src="js/vendor/viewport.min.js"></script>
   <script src="js/lib/underscore-custom.js"></script>
   <script src="js/lib/webflow.js"></script>
