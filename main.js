@@ -68,7 +68,8 @@ var APP = (function ($) {
         },
         onSlideChangeStart: function() {},
         onSlideChangeEnd: function(swiper, event) {
-          console.log('onSlideChangeEnd', swiper, event)
+          // console.log('onSlideChangeEnd', swiper, event)
+          app.progressiveMedia.readMedia()
         },
         onSlideNextStart: function() {},
         onSlideNextEnd: function(swiper, event) {
@@ -287,7 +288,7 @@ var APP = (function ($) {
       var $el           = options.$el ? options.$el : $( _this.$el.container );
       var offsetPercent = options.offsetPercent ? options.offsetPercent : 0;
 
-      if ( $el.is(':in-viewport')) {
+      if ( $el.is(':in-viewport') ) {
         requestAnimationFrame(function() {
 
           var data = getElementScrollData({ $el: $el, offsetPercent: offsetPercent, debug: _this.debug })
@@ -336,30 +337,41 @@ var APP = (function ($) {
 
       var _this = app.progressiveMedia;
 
-      _this.readThumbs()
-      _this.readMedia()
-      
+      _this.readMedia()  
     },
 
     readMedia: function() {
+    
+      
+      this.readThumbs()
+      this.readFull()
+
+    },
+
+    readFull: function() {
 
       var _this = app.progressiveMedia;
       
       var $items = $('[data-progressivemedia]')
 
       $.each( $items, function(i, item) {
+
+        var hasBg = ($(item).css('background-image') != 'none') ? true : false;
         
         var type = $(item).data('progressivemedia-type'),
             src  = $(item).data('progressivemedia-src'),
             name = $(item).data('progressivemedia-name');
 
-        if ( type ) {
-          if ( type === 'background' ) {
-            _this.renderImageAsBackground({
-              element: $(item),
-              name: name,
-              src: src,
-            })
+        if ( $(item).is(':in-viewport') ) {
+
+          if ( type ) {
+            if ( type === 'background' ) {
+              _this.renderImageAsBackground({
+                element: $(item),
+                name: name,
+                src: src,
+              })
+            }
           }
         }
       })
@@ -374,6 +386,11 @@ var APP = (function ($) {
       var $items = $('[data-progressivemedia-thumb]')
 
       $.each( $items, function(i, item) {
+
+        if ( $(item).siblings('canvas').length > 0 ) {
+          return;
+        }
+        
         var src     = $(item).attr('src')
         var radius  = $(item).data('progressivemedia-radius') ? $(item).data('progressivemedia-radius') : 20;
         var id      = 'progressiveMedia-preview-canvas-'+makeId();
@@ -409,7 +426,7 @@ var APP = (function ($) {
           $element.find('canvas').fadeOut()
           ee.emitEvent('progressiveMedia.renderImageAsBackground', [options]);
           if ( callback ) callback()
-        }, 300)
+        }, 100)
       }
 
     },
