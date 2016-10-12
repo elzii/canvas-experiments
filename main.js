@@ -341,11 +341,8 @@ var APP = (function ($) {
     },
 
     readMedia: function() {
-    
-      
       this.readThumbs()
       this.readFull()
-
     },
 
     readFull: function() {
@@ -357,14 +354,20 @@ var APP = (function ($) {
       $.each( $items, function(i, item) {
 
         var hasBg = ($(item).css('background-image') != 'none') ? true : false;
+
+        if ( hasBg ) {
+          return;
+        }
         
-        var type = $(item).data('progressivemedia-type'),
-            src  = $(item).data('progressivemedia-src'),
-            name = $(item).data('progressivemedia-name');
+        var type         = $(item).data('progressivemedia-type'),
+            src          = $(item).data('progressivemedia-src'),
+            viewportOnly = $(item).data('progressivemedia-viewport-only'),
+            name         = $(item).data('progressivemedia-name');
 
-        if ( $(item).is(':in-viewport') ) {
-
-          if ( type ) {
+        if ( viewportOnly ) {
+          console.log('viewportOnly')
+          if ( $(item).is(':in-viewport') ) {
+          
             if ( type === 'background' ) {
               _this.renderImageAsBackground({
                 element: $(item),
@@ -373,7 +376,14 @@ var APP = (function ($) {
               })
             }
           }
+        } else {
+          _this.renderImageAsBackground({
+            element: $(item),
+            name: name,
+            src: src,
+          })
         }
+        
       })
 
     },
