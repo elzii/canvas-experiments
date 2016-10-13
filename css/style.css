@@ -256,3 +256,40 @@ small { text-transform: uppercase; }
       opacity:1;
       visibility: visible;
     }
+
+
+
+.swiper-cover-nav {
+  position: relative;
+  width: 107px;
+}
+  .swiper-cover-nav #svg-arrowUp {
+    position: absolute;
+    top:0;left:0;
+  }
+    .swiper-cover-nav #svg-arrowUp:hover {
+      opacity:0.9;
+      // top:2px;
+    }
+  .swiper-cover-nav #svg-arrowDown {
+    position: absolute;
+    top:8px;right:0;
+  }
+    .swiper-cover-nav #svg-arrowDown:hover {
+      opacity:0.9;
+      // top:6px;
+    }
+
+
+
+/**
+ * SVGs
+ */
+#svg-arrowUp {
+  transition: all 150ms ease-in-out;
+  fill: #968b51
+}
+#svg-arrowDown {
+  transition: all 150ms ease-in-out;
+  fill: #b3a660
+}
