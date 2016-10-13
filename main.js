@@ -5,8 +5,18 @@ var APP = (function ($) {
    * Modules
    */
   var app  = window.APP || {};
+  var ee   = new EventEmitter();
 
+  app.environment = function() {
+    return window.location.href.match(/(localhost|dev)/g) ? 'development' : 'production';
+  }
 
+  /**
+   * Settings
+   */
+  app.settings = {
+
+  }
   
 
   /**
@@ -15,24 +25,183 @@ var APP = (function ($) {
   app.init = function() {
 
     this.progressiveMedia.init()
-
     this.parallaxCardDefault.init()
+    this.coverSlider.init()
+
+  }
+
+
+  /**
+   * Cover Slider
+   * 
+   * @type {Object}
+   */
+  app.coverSlider = {
+
+    $el: {
+      container: document.getElementById('cover'),
+      swiperCover: document.getElementById('swiper-cover'),
+      swiperCoverContent: document.getElementById('swiper-coverContent'),
+      touchOverlay: document.getElementById('swiper-touch-overlay')
+    },
+
+    init: function() {
+
+      var _this = this;
+
+      _this.slider()
+      _this.events()
+
+    },
+
+    slider: function() {
+
+      var _this = this;
+
+      window.coverContentSwiper = $( _this.$el.swiperCoverContent ).swiper({
+        direction: 'vertical',
+        onInit: function(swiper) {
+          $( swiper.slides[0] ).addClass('show')
+        },
+        onSlideChangeStart: function(swiper) {
+          console.log('onSlideChangeStart', swiper.activeIndex, swiper.previousIndex, swiper)
+
+          $( swiper.slides[swiper.previousIndex] ).removeClass('show')
+          $( swiper.slides[swiper.activeIndex] ).addClass('show')
+
+        },
+      })
+      
+      window.coverSwiper = $( _this.$el.swiperCover ).swiper({
+        // scrollbar: '.swiper-scrollbar',
+        pagination: '.swiper-pagination',
+        paginationClickable: true,
+        direction: 'vertical',
+        keyboardControl: true,
+        mousewheelControl: true,
+        mousewheelSensitivity: 1,
+        mousewheelReleaseOnEdges: true,
+
+        
+        iOSEdgeSwipeDetection: true,
+        iOSEdgeSwipeThreshold: 20,
+
+        // freeMode: true,
+        // freeModeSticky: true,
+        // freeModeMomentumRatio: 20,
+
+
+        // swipeHandler: '.swipe-handler',
+        // noSwiping: true,
+        noSwipingClass: 'swiper-no-swiping',
+
+        control: window.coverContentSwiper,
+
+        onInit: function(swiper, event) {
+          // console.log('onInit', swiper, event)
+          _this.reveal()
+        },
+        onReachEnd: function(swiper, event) {
+          // console.log('onReachEnd', swiper, event)
+        },
+        onSlideChangeStart: function() {},
+        onSlideChangeEnd: function(swiper, event) {
+          // console.log('onSlideChangeEnd', swiper, event)
+          app.progressiveMedia.readMedia()
+        },
+        onSlideNextStart: function(swiper) {
+          swiper.on('touchMove', function(swiper, event) {
+            if ( Math.abs(swiper.getWrapperTranslate()) > swiper.height ) {}
+          })
+        },
+        onSlideNextEnd: function(swiper, event) {
+          // console.log('onSlideNextEnd', swiper, event)
+
+          var activeIndex = swiper.activeIndex;
+
+          if ( swiper.isEnd && !swiper.animating ) {
+            var lastSlide = swiper.slides[activeIndex]
+
+
+            $(document).on('scroll', function() {
+              window.coverSwiper.disableMousewheelControl()
+            })
+            
+
+            $( lastSlide ).addClass('swiper-no-swiping')
+          }
+        },
+        onSlidePrevStart: function() {},
+        onSlidePrevEnd: function() {},
+        onTouchMove: function(swiper, event) {
+          // console.log('onTouchMove', Math.abs(swiper.getWrapperTranslate()), swiper.height )
+        }
+      });
+
+    },
+
+    events: function() {
+
+      var _this = this;
+
+      var lastScrollTime;
+      
+      var s = new ScrollProxy() 
+      
+      s.on('scroll', function() {
+        var scrollTop = window.pageYOffset || $(window).scrollTop()
+
+        if ( scrollTop == 0 ) {
+          // $( _this.$el.touchOverlay ).hide()
+          $('.swiper-no-swiping').removeClass('swiper-no-swiping')
+        }
+      })
+
+      bindScrollHandler({
+        handler: function(e) {
+          // console.log('handler', e)
+
+          // if ((new window.Date()).getTime() - lastScrollTime > 60) {}
+
+          if ( e.scrollTop == 0 ) {
+            setTimeout(function() {
+              window.coverSwiper.enableMousewheelControl()
+            }, 500)
+          }
+
+          lastScrollTime = (new window.Date()).getTime();
+        }
+      })
+
+    },
+
+    reveal: function() {
+      var _this = this;
+
+      // show when event has been emitted, otherwise show immediatly
+      if ( ee ) {
+        ee.addListener('progressiveMedia.renderImageAsBackground', function(opts) {
+          if ( opts.name === 'cover-photo' ) {
+            $( _this.$el.container ).find('.cover__sheet').addClass('show')
+          }
+        })
+      } else {
+        $( _this.$el.container ).find('.cover__sheet').addClass('show')
+      }
+    }
 
   }
 
 
 
-
-
-
-
   /**
    * Parallax Card - Default
+   * 
    * @type {Object}
    */
   app.parallaxCardDefault = {
 
-    debug: true,
+    debug: false,
 
 
     $el: {
@@ -210,8 +379,8 @@ var APP = (function ($) {
       var $el           = options.$el ? options.$el : $( _this.$el.container );
       var offsetPercent = options.offsetPercent ? options.offsetPercent : 0;
 
-      if ( $el.is(':in-viewport')) {
-        requestAnimationFrame(function() {
+      if ( $el.is(':in-viewport') ) {
+        requestAnimFrame(function() {
 
           var data = getElementScrollData({ $el: $el, offsetPercent: offsetPercent, debug: _this.debug })
 
@@ -259,30 +428,67 @@ var APP = (function ($) {
 
       var _this = app.progressiveMedia;
 
-      _this.readThumbs()
+      _this.events()
       _this.readMedia()
-      
+    },
+
+    events: function() {
+      var _this = this;
+
+      bindScrollHandler({
+        $el: $('[data-progressivemedia]'),
+        handler: function(data) {
+          
+          if ( data.$el.is(':in-viewport') ) {
+            _this.readMedia()
+          }
+        }
+      })
     },
 
     readMedia: function() {
+      this.readThumbs()
+      this.readFull()
+    },
+
+    readFull: function() {
 
       var _this = app.progressiveMedia;
       
       var $items = $('[data-progressivemedia]')
 
       $.each( $items, function(i, item) {
-        
-        var type = $(item).data('progressivemedia-type'),
-            src  = $(item).data('progressivemedia-src');
 
-        if ( type ) {
-          if ( type === 'background' ) {
-            _this.renderImageAsBackground({
-              element: $(item),
-              src: src,
-            })
-          }
+        var hasBg = ($(item).css('background-image') != 'none') ? true : false;
+
+        if ( hasBg ) {
+          return;
         }
+        
+        var type         = $(item).data('progressivemedia-type'),
+            src          = $(item).data('progressivemedia-src'),
+            viewportOnly = $(item).data('progressivemedia-viewport-only'),
+            name         = $(item).data('progressivemedia-name');
+
+        if ( viewportOnly ) {
+          if ( $(item).is(':in-viewport') ) {
+          
+            if ( type === 'background' ) {
+              _this.renderImageAsBackground({
+                element: $(item),
+                name: name,
+                src: src,
+              })
+            }
+          }
+        } else {
+          _this.renderImageAsBackground({
+            element: $(item),
+            name: name,
+            src: src,
+          })
+        }
+        
       })
 
     },
@@ -295,7 +501,13 @@ var APP = (function ($) {
       var $items = $('[data-progressivemedia-thumb]')
 
       $.each( $items, function(i, item) {
+
+        if ( $(item).siblings('canvas').length > 0 ) {
+          return;
+        }
+        
         var src     = $(item).attr('src')
+        var radius  = $(item).data('progressivemedia-radius') ? $(item).data('progressivemedia-radius') : 20;
         var id      = 'progressiveMedia-preview-canvas-'+makeId();
         var canvas  = $('<canvas/>', { id: id, class: 'progressiveMedia-preview-canvas' })
         var context = canvas.get(0).getContext('2d')
@@ -305,6 +517,7 @@ var APP = (function ($) {
         _this.drawImagePreviewToCanvas({
           id: id,
           src: src,
+          radius: radius,
           context: context
         })
 
@@ -312,20 +525,23 @@ var APP = (function ($) {
 
     },
 
-    renderImageAsBackground: function(options) {
+    renderImageAsBackground: function(options, callback) {
 
       var src     = options.src ? options.src : '';
+      var name    = options.name ? options.name : '';
       var $element = options.element ? options.element : {};
 
       var img = new Image();
       img.src = src;
       img.onload = function () {
-        console.log('Loaded full image')
 
+        $element.css('background-image', 'url('+src+')')
+        
         setTimeout(function() {
           $element.find('canvas').fadeOut()
-        }, 300)
-        $element.css('background-image', 'url('+src+')')
+          ee.emitEvent('progressiveMedia.renderImageAsBackground', [options]);
+          if ( callback ) callback()
+        }, 100)
       }
 
     },
@@ -335,6 +551,7 @@ var APP = (function ($) {
 
       var id      = options.id ? options.id : '';
       var src     = options.src ? options.src : '';
+      var radius  = options.radius ? options.radius : '';
       var context = options.context ? options.context : {};
 
       var w = context.canvas.width;
@@ -344,7 +561,7 @@ var APP = (function ($) {
       img.src = src;
       img.onload = function () {
         context.drawImage(img, 0, 0, w, h);
-        stackBlurCanvasRGBA(id, 0, 0, w, h, 100);
+        stackBlurCanvasRGBA(id, 0, 0, w, h, radius);
       }
     },
 
@@ -545,6 +762,46 @@ var APP = (function ($) {
       state.active = active;
       active ? intro(options) : outro(options);
     });
+  }
+
+
+  function bindScrollHandler(options) {
+    options = options || {};
+    var $el = options.$el;
+    var $win = $(window);
+    var handler = options.handler;
+
+    if ( $el ) {
+      Webflow.scroll.on(function() {
+        requestAnimFrame(function() {
+          var data = getElementScrollData({ $el: $el });
+              data.$el = $el;
+
+          handler( data )
+        })
+      })
+    } else {
+
+      Webflow.scroll.on(function() {
+        requestAnimFrame(function() {
+          handler({
+            scrollTop: window.pageYOffset || $(window).scrollTop(),
+            viewHeight: $(window).height(),
+            pageY: (window.pageYOffset || $(window).scrollTop()) + $(window).height()
+          })
+        })
+      })
+
+      // $(document).on('scroll', function() {
+      //   requestAnimFrame(function() {
+      //     handler({
+      //       scrollTop: window.pageYOffset || $(window).scrollTop(),
+      //       viewHeight: $(window).height(),
+      //       pageY: (window.pageYOffset || $(window).scrollTop()) + $(window).height()
+      //     })
+      //   })
+      // })
+    }
   }
 
 
