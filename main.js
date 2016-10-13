@@ -41,6 +41,7 @@ var APP = (function ($) {
     $el: {
       container: document.getElementById('cover'),
       swiper: document.getElementById('swiper-container'),
+      touchOverlay: document.getElementById('swiper-touch-overlay')
     },
 
     init: function() {
@@ -48,7 +49,7 @@ var APP = (function ($) {
       var _this = this;
 
       _this.slider()
-      _this.reveal()
+      _this.events()
 
     },
 
@@ -56,12 +57,27 @@ var APP = (function ($) {
 
       var _this = this;
       
-      var s = $( _this.$el.swiper ).swiper({
+      window.coverSwiper = $( _this.$el.swiper ).swiper({
+        // scrollbar: '.swiper-scrollbar',
         pagination: '.swiper-pagination',
         paginationClickable: true,
-        direction: 'horizontal',
+        direction: 'vertical',
+        keyboardControl: true,
+        mousewheelControl: true,
+        mousewheelSensitivity: 1,
+        mousewheelReleaseOnEdges: true,
+
+        
+        iOSEdgeSwipeDetection: true,
+        iOSEdgeSwipeThreshold: 20,
+
+        // swipeHandler: '.swipe-handler',
+
+        // noSwiping: true,
+        // noSwipingClass: 'swiper-no-swiping',
         onInit: function(swiper, event) {
           console.log('onInit', swiper, event)
+          _this.reveal()
         },
         onReachEnd: function(swiper, event) {
           console.log('onReachEnd', swiper, event)
@@ -74,6 +90,28 @@ var APP = (function ($) {
         onSlideNextStart: function() {},
         onSlideNextEnd: function(swiper, event) {
           console.log('onSlideNextEnd', swiper, event)
+
+          var activeIndex = swiper.activeIndex;
+
+          if ( swiper.isEnd && !swiper.animating ) {
+            var lastSlide = swiper.slides[activeIndex]
+
+            setTimeout(function() {
+              window.coverSwiper.disableMousewheelControl()
+            }, 500)
+
+            swiper.on('scroll', function(event) {
+              console.log('scroll', event)
+            })
+
+            swiper.on('touchMove', function(swiper, event) {
+              if ( swiper.swipeDirection === 'next' ) {
+                $( _this.$el.touchOverlay ).show()
+              }
+            })
+
+
+          }
         },
         onSlidePrevStart: function() {},
         onSlidePrevEnd: function() {},
@@ -81,6 +119,40 @@ var APP = (function ($) {
           
         }
       });
+
+    },
+
+    events: function() {
+
+      var _this = this;
+
+      var lastScrollTime;
+      
+      var s = new ScrollProxy() 
+      
+      s.on('scroll', function() {
+        var scrollTop = window.pageYOffset || $(window).scrollTop()
+
+        if ( scrollTop == 0 ) {
+          $( _this.$el.touchOverlay ).hide()
+        }
+      })
+
+      bindScrollHandler({
+        handler: function(e) {
+          // console.log('handler', e)
+
+          // if ((new window.Date()).getTime() - lastScrollTime > 60) {}
+
+          if ( e.scrollTop == 0 ) {
+            setTimeout(function() {
+              window.coverSwiper.enableMousewheelControl()
+            }, 500)
+          }
+
+          lastScrollTime = (new window.Date()).getTime();
+        }
+      })
 
     },
 
@@ -289,7 +361,7 @@ var APP = (function ($) {
       var offsetPercent = options.offsetPercent ? options.offsetPercent : 0;
 
       if ( $el.is(':in-viewport') ) {
-        requestAnimationFrame(function() {
+        requestAnimFrame(function() {
 
           var data = getElementScrollData({ $el: $el, offsetPercent: offsetPercent, debug: _this.debug })
 
@@ -337,7 +409,22 @@ var APP = (function ($) {
 
       var _this = app.progressiveMedia;
 
-      _this.readMedia()  
+      _this.events()
+      _this.readMedia()
+    },
+
+    events: function() {
+      var _this = this;
+
+      bindScrollHandler({
+        $el: $('[data-progressivemedia]'),
+        handler: function(data) {
+          
+          if ( data.$el.is(':in-viewport') ) {
+            _this.readMedia()
+          }
+        }
+      })
     },
 
     readMedia: function() {
@@ -365,7 +452,6 @@ var APP = (function ($) {
             name         = $(item).data('progressivemedia-name');
 
         if ( viewportOnly ) {
-          console.log('viewportOnly')
           if ( $(item).is(':in-viewport') ) {
           
             if ( type === 'background' ) {
@@ -657,6 +743,46 @@ var APP = (function ($) {
       state.active = active;
       active ? intro(options) : outro(options);
     });
+  }
+
+
+  function bindScrollHandler(options) {
+    options = options || {};
+    var $el = options.$el;
+    var $win = $(window);
+    var handler = options.handler;
+
+    if ( $el ) {
+      Webflow.scroll.on(function() {
+        requestAnimFrame(function() {
+          var data = getElementScrollData({ $el: $el });
+              data.$el = $el;
+
+          handler( data )
+        })
+      })
+    } else {
+
+      Webflow.scroll.on(function() {
+        requestAnimFrame(function() {
+          handler({
+            scrollTop: window.pageYOffset || $(window).scrollTop(),
+            viewHeight: $(window).height(),
+            pageY: (window.pageYOffset || $(window).scrollTop()) + $(window).height()
+          })
+        })
+      })
+
+      // $(document).on('scroll', function() {
+      //   requestAnimFrame(function() {
+      //     handler({
+      //       scrollTop: window.pageYOffset || $(window).scrollTop(),
+      //       viewHeight: $(window).height(),
+      //       pageY: (window.pageYOffset || $(window).scrollTop()) + $(window).height()
+      //     })
+      //   })
+      // })
+    }
   }
 
 

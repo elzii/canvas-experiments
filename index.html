@@ -13,11 +13,18 @@
 
   <div id="cover" class="cover">
 
-    <div class="cover__sheet"></div>
+    <div id="swiper-touch-overlay" class="swiper-touch-overlay"></div>
 
     <div id="swiper-container" class="swiper-container">
+      
+
+      <div class="cover__sheet"></div>
+
+      <!-- <div class="swipe-handler" style="position: absolute;top:0;right:0;height:100%;width:100px;background-color:rgba(255,0,0,0.5);z-index:5;"></div> -->
+
       <div class="swiper-wrapper">
         
+
         <div class="swiper-slide">
           
           
@@ -25,7 +32,7 @@
             <img src="images/cover-photo-01--thumb.jpg" data-progressiveMedia-radius="15" data-progressiveMedia-thumb class="progressiveMedia-thumb progressiveMedia-thumb--full">
           </div>
           <div class="cover__inner">
-            
+                        
           </div>
 
         </div>
@@ -41,7 +48,8 @@
         </div>
 
       </div>
-      <div class="swiper-pagination"></div>
+      <div class="swiper-pagination swiper-pagination-force-horizontal"></div>
+      <!-- <div class="swiper-scrollbar"></div> -->
     </div>
   </div>
   
@@ -78,6 +86,7 @@
   <script src="js/vendor/jquery-3.1.1.min.js"></script>
 
   <script src="js/vendor/tram.js"></script>
+  <script src="js/vendor/scroll-proxy.min.js"></script>
   <script src="js/vendor/swiper.jquery.min.js"></script>
   <script src="js/vendor/stackblur.min.js"></script>
   <script src="js/vendor/eventemitter.min.js"></script>

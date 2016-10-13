@@ -1,16 +1,5 @@
 var Webflow = {};
-var modules = {};
-var primary = [];
-var secondary = window.Webflow || [];
-var $ = window.jQuery;
 var $win = $(window);
-var $doc = $(document);
-var isFunction = $.isFunction;
-var domready = false;
-var destroyed = false;
-var Modernizr = window.Modernizr;
-tram.config.hideBackface = false;
-tram.config.keepInherited = true;
 
 /**
  * Webflow.resize, Webflow.scroll - throttled event proxies
@@ -60,5 +49,6 @@ function eventProxy(target, types) {
     });
   };
 
+  console.log('proxy', proxy)
   return proxy;
 }

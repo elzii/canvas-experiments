@@ -172,6 +172,10 @@ small { text-transform: uppercase; }
   height:100%;
 }
 
+  .swiper-slide {
+    overflow:hidden;
+  }
+
 .swiper-pagination {
   z-index:10;
   text-align: right;
@@ -191,4 +195,24 @@ small { text-transform: uppercase; }
   width: 14px;
   height: 14px;
   top: 2px;
+}
+
+.swiper-pagination-force-horizontal {
+  top: auto !important;
+  bottom: 0 !important;
+}
+  .swiper-pagination-force-horizontal .swiper-pagination-bullet {
+    display: inline-block !important;
+    margin:0 5px !important;
+  }
+
+
+#swiper-touch-overlay {}
+.swiper-touch-overlay {
+  display: none;
+  position: absolute;
+  top:0;left:0;
+  width:100%;height:100%;
+  z-index:100;
+  background-color: rgba(255,0,0, 0.3);
 }
