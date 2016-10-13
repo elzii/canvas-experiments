@@ -40,7 +40,8 @@ var APP = (function ($) {
 
     $el: {
       container: document.getElementById('cover'),
-      swiper: document.getElementById('swiper-container'),
+      swiperCover: document.getElementById('swiper-cover'),
+      swiperCoverContent: document.getElementById('swiper-coverContent'),
       touchOverlay: document.getElementById('swiper-touch-overlay')
     },
 
@@ -56,8 +57,22 @@ var APP = (function ($) {
     slider: function() {
 
       var _this = this;
+
+      window.coverContentSwiper = $( _this.$el.swiperCoverContent ).swiper({
+        direction: 'vertical',
+        onInit: function(swiper) {
+          $( swiper.slides[0] ).addClass('show')
+        },
+        onSlideChangeStart: function(swiper) {
+          console.log('onSlideChangeStart', swiper.activeIndex, swiper.previousIndex, swiper)
+
+          $( swiper.slides[swiper.previousIndex] ).removeClass('show')
+          $( swiper.slides[swiper.activeIndex] ).addClass('show')
+
+        },
+      })
       
-      window.coverSwiper = $( _this.$el.swiper ).swiper({
+      window.coverSwiper = $( _this.$el.swiperCover ).swiper({
         // scrollbar: '.swiper-scrollbar',
         pagination: '.swiper-pagination',
         paginationClickable: true,
@@ -71,52 +86,55 @@ var APP = (function ($) {
         iOSEdgeSwipeDetection: true,
         iOSEdgeSwipeThreshold: 20,
 
-        // swipeHandler: '.swipe-handler',
+        // freeMode: true,
+        // freeModeSticky: true,
+        // freeModeMomentumRatio: 20,
 
+
+        // swipeHandler: '.swipe-handler',
         // noSwiping: true,
-        // noSwipingClass: 'swiper-no-swiping',
+        noSwipingClass: 'swiper-no-swiping',
+
+        control: window.coverContentSwiper,
+
         onInit: function(swiper, event) {
-          console.log('onInit', swiper, event)
+          // console.log('onInit', swiper, event)
           _this.reveal()
         },
         onReachEnd: function(swiper, event) {
-          console.log('onReachEnd', swiper, event)
+          // console.log('onReachEnd', swiper, event)
         },
         onSlideChangeStart: function() {},
         onSlideChangeEnd: function(swiper, event) {
           // console.log('onSlideChangeEnd', swiper, event)
           app.progressiveMedia.readMedia()
         },
-        onSlideNextStart: function() {},
+        onSlideNextStart: function(swiper) {
+          swiper.on('touchMove', function(swiper, event) {
+            if ( Math.abs(swiper.getWrapperTranslate()) > swiper.height ) {}
+          })
+        },
         onSlideNextEnd: function(swiper, event) {
-          console.log('onSlideNextEnd', swiper, event)
+          // console.log('onSlideNextEnd', swiper, event)
 
           var activeIndex = swiper.activeIndex;
 
           if ( swiper.isEnd && !swiper.animating ) {
             var lastSlide = swiper.slides[activeIndex]
 
-            setTimeout(function() {
+
+            $(document).on('scroll', function() {
               window.coverSwiper.disableMousewheelControl()
-            }, 500)
-
-            swiper.on('scroll', function(event) {
-              console.log('scroll', event)
             })
+            
 
-            swiper.on('touchMove', function(swiper, event) {
-              if ( swiper.swipeDirection === 'next' ) {
-                $( _this.$el.touchOverlay ).show()
-              }
-            })
-
-
+            $( lastSlide ).addClass('swiper-no-swiping')
           }
         },
         onSlidePrevStart: function() {},
         onSlidePrevEnd: function() {},
         onTouchMove: function(swiper, event) {
-          
+          // console.log('onTouchMove', Math.abs(swiper.getWrapperTranslate()), swiper.height )
         }
       });
 
@@ -134,7 +152,8 @@ var APP = (function ($) {
         var scrollTop = window.pageYOffset || $(window).scrollTop()
 
         if ( scrollTop == 0 ) {
-          $( _this.$el.touchOverlay ).hide()
+          // $( _this.$el.touchOverlay ).hide()
+          $('.swiper-no-swiping').removeClass('swiper-no-swiping')
         }
       })
 

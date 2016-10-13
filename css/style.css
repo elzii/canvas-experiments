@@ -166,7 +166,7 @@ small { text-transform: uppercase; }
 /**
  * Swiper Overrides
  */
-.swiper-container {
+.swiper-cover {
   position: absolute;
   width:100%;
   height:100%;
@@ -207,6 +207,9 @@ small { text-transform: uppercase; }
   }
 
 
+/**
+ * Touch Overlay
+ */
 #swiper-touch-overlay {}
 .swiper-touch-overlay {
   display: none;
@@ -216,3 +219,40 @@ small { text-transform: uppercase; }
   z-index:100;
   background-color: rgba(255,0,0, 0.3);
 }
+
+
+/**
+ * Swiper Content
+ */
+#swiper-coverContent {}
+.swiper-cover-content {
+  position: absolute;
+  top:0;left:0;
+  width:45%;
+  height:100%;
+  z-index:50;
+}
+
+.swiper-cover-content .swiper-slide {
+  
+}
+
+    .swiper-cover-content .swiper-slide-content {
+      position: absolute;
+      top: 50%;
+      left:0;
+      padding: 0 100px;
+
+      transition: all 450ms ease-in-out;
+      
+      transform: translate3d(-2%, -48%, 0);
+
+      opacity:0;
+      visibility: hidden;
+    }
+
+    .swiper-cover-content .swiper-slide.show .swiper-slide-content {
+      transform: translate3d(0, -50%, 0);
+      opacity:1;
+      visibility: visible;
+    }
