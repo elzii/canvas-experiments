@@ -61,10 +61,23 @@ var APP = (function ($) {
       window.coverContentSwiper = $( _this.$el.swiperCoverContent ).swiper({
         direction: 'vertical',
         onInit: function(swiper) {
-          $( swiper.slides[0] ).addClass('show')
+          
+
+          if ( ee ) {
+            ee.addListener('progressiveMedia.renderImageAsBackground', function(opts) {
+              if ( opts.name === 'cover-photo' ) {
+                setTimeout(function() {
+                  $( swiper.slides[0] ).addClass('show')
+                }, 150)
+              }
+            })
+          } else {
+            $( _this.$el.container ).find('.cover__sheet').addClass('show')
+          }
+
         },
         onSlideChangeStart: function(swiper) {
-          console.log('onSlideChangeStart', swiper.activeIndex, swiper.previousIndex, swiper)
+          // console.log('onSlideChangeStart', swiper.activeIndex, swiper.previousIndex, swiper)
 
           $( swiper.slides[swiper.previousIndex] ).removeClass('show')
           $( swiper.slides[swiper.activeIndex] ).addClass('show')
@@ -157,19 +170,27 @@ var APP = (function ($) {
         }
       })
 
+      
+      var lastScrollTime;
+
+      // bindMouseWheelHandler({
+      //   handler: function(e) {
+      //     // console.log('bindMouseWheelHandler', e)
+      //     if ( e.pageYOffset == 0 ) {
+      //       if ( (new window.Date()).getTime() - lastScrollTime > 50 ) {
+      //         window.coverSwiper.enableMousewheelControl()
+      //       }
+      //     }
+      //     lastScrollTime = (new window.Date()).getTime();
+      //   }
+      // })
+
+
       bindScrollHandler({
         handler: function(e) {
-          // console.log('handler', e)
-
-          // if ((new window.Date()).getTime() - lastScrollTime > 60) {}
-
           if ( e.scrollTop == 0 ) {
-            setTimeout(function() {
-              window.coverSwiper.enableMousewheelControl()
-            }, 500)
+            window.coverSwiper.enableMousewheelControl()
           }
-
-          lastScrollTime = (new window.Date()).getTime();
         }
       })
 
@@ -191,6 +212,18 @@ var APP = (function ($) {
     }
 
   }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -218,8 +251,7 @@ var APP = (function ($) {
       // console.log( '_this.$el', _this.$el )
 
       // set canvas size to container size
-      $(_this.$el.canvas).attr('width', $(_this.$el.container).width() )
-      $(_this.$el.canvas).attr('height', $(_this.$el.container).height() )
+      _this.setCanvasSize()
 
       _this.update({
         $el: $( _this.$el.container ),
@@ -228,17 +260,25 @@ var APP = (function ($) {
       _this.events()
     },
 
+    setCanvasSize: function() {
+      var _this = this;
+
+      $(_this.$el.canvas).attr('width', $(_this.$el.container).width() )
+      $(_this.$el.canvas).attr('height', $(_this.$el.container).height() )
+    },
+
     // Events
     events: function() {
       var _this = this;
 
       $(document).on('scroll', function() {
-
         _this.update()
-
       })
 
-      $(window).resize( _this.update() );
+      $(window).resize(function() {
+        _this.setCanvasSize()
+        _this.update()
+      });
 
 
       addViewportScrollHandler({
@@ -411,6 +451,15 @@ var APP = (function ($) {
 
 
   }
+
+
+
+
+
+
+
+
+
 
 
 
@@ -765,6 +814,13 @@ var APP = (function ($) {
   }
 
 
+
+  /**
+   * Bind Scroll Handler
+   * 
+   * @param  {Object} options 
+   * @return {Function}
+   */
   function bindScrollHandler(options) {
     options = options || {};
     var $el = options.$el;
@@ -781,7 +837,6 @@ var APP = (function ($) {
         })
       })
     } else {
-
       Webflow.scroll.on(function() {
         requestAnimFrame(function() {
           handler({
@@ -803,6 +858,41 @@ var APP = (function ($) {
       // })
     }
   }
+
+
+
+  function bindMouseWheelHandler(options) {
+    options = options || {};
+    var $el = options.$el;
+    var $win = $(window);
+    var handler = options.handler;
+
+    var lastPageYOffset,
+        lastScrollTime;
+
+    $(document).on('mousewheel DOMMouseScroll', function(event) {
+      var pageYOffset = window.pageYOffset || $win.scrollTop()
+
+      if ( pageYOffset > lastPageYOffset ) {
+        handler({
+          lastPageYOffset: lastPageYOffset,
+          pageYOffset: pageYOffset,
+          direction: 'down'
+        })
+      } else {
+        handler({
+          lastPageYOffset: lastPageYOffset,
+          pageYOffset: pageYOffset,
+          direction: 'up'
+        })
+      }
+
+      lastPageYOffset = pageYOffset;
+      lastScrollTime = (new window.Date()).getTime()
+    })
+  }
+
+
 
 
 

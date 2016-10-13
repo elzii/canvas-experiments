@@ -49,6 +49,5 @@ function eventProxy(target, types) {
     });
   };
 
-  console.log('proxy', proxy)
   return proxy;
 }
